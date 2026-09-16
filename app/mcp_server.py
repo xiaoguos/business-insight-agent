@@ -1,4 +1,5 @@
 """Read-only MCP boundary. Notification mutation stays behind graph approval."""
+
 import os
 from pathlib import Path
 from fastmcp import FastMCP
@@ -9,7 +10,9 @@ mcp = FastMCP("business-insight-tools")
 
 
 @mcp.tool
-def query_refund_metrics(dimension: str = "channel", channel: str | None = None, product: str | None = None) -> dict:
+def query_refund_metrics(
+    dimension: str = "channel", channel: str | None = None, product: str | None = None
+) -> dict:
     """Query synthetic refund counts for two fixed September 2026 windows."""
     path = Path(os.getenv("INSIGHT_DATA_DIR", "data/runtime")) / "orders.db"
     seed_database(path)

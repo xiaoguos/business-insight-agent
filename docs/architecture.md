@@ -13,10 +13,20 @@
 
 ## 项目专属链路
 
-真实CSV → 不可变Dataset/Order → Task+Job同事务创建 → LangGraph(plan/query/analyze/report) → 结果+report_hash+awaiting_approval落库 → 另一位审核人审核 → 发布Job → Notification唯一记录+completed同事务。
+真实CSV与规则文档 → 不可变Dataset/Order、BusinessRule → Task+Job同事务创建 → Conductor分工 → Analysis和Knowledge并行 → Report汇合 → 结果+report_hash+awaiting_approval落库 → 另一位审核人审核 → 发布Job → Notification唯一记录+completed同事务。
+
+四个Agent各自运行独立决策循环，而不是只将函数改名。每个循环最多4轮模型决策、3次工具调用；持久化AgentRun和已校验工具事件。模型适配器返回结构化Decision，服务端先检查角色工具能力，再检查参数和结果。Conductor无业务工具；模型输出不能赋予其他Agent更多权限。
+
+Analysis只获得问题、用户指定窗口、授权快照的维度catalog；Knowledge只获得问题与检索任务，不获得订单数据；Report仅获得已完成的聚合指标和已验证引用，不继承其他Agent的完整消息历史。系统不记录/展示隐藏思维链。
+
+业务规则ID由用户选择并固化到Task，检索同时限定tenant与rule_ids。规则记录不可变，后续上传不会悄悄影响已有任务。require_rules属于用户政策，Conductor只能收紧不能放宽；可选分支失败必须在报告中披露，必选分支失败不得发布。
 
 为什么不自动执行模型SQL：当前业务只需要退款率、渠道/产品分组和可选过滤。固定结构化 Plan 与 SQLAlchemy参数化查询足够表达需求，并大幅缩小权限与注入面。模型输出严格Pydantic校验，维度只能来自Literal白名单，过滤值必须存在于所选快照。
 
-为什么不追求节点级恢复：当前图内只有模型调用和只读查询/纯计算。整个作业重跑可接受，审批与站内发布在图外持久化，避免重新生成报告后套用旧审批。若模型成本/图长度增大，再加入按输入hash持久化的节点缓存或checkpoint；届时必须版本化图和状态。
+恢复边界：当前整个多Agent作业可以重跑，AgentRun用于审计，不是假装存在的checkpoint。重复模型调用仍可能计费。审批与站内发布在图外持久化，通知重试不重跑模型。若模型成本/图长度增大，再加入基于输入hash的节点缓存或checkpoint，并版本化图与状态。
 
 超额退款=当前退款数-当前订单数×该组基准退款率。它是排查线索，不证明因果；没有基准样本的组显示不可比较，不用0伪造对照。站内通知是实际产品能力，不是外部消息推送的模拟器。
+
+## 实现依据
+
+LangGraph多出边并行、显式汇合使用官方[Graph API](https://docs.langchain.com/oss/python/langgraph/graph-api)；独立Agent上下文与监督者模式参考官方[子Agent说明](https://docs.langchain.com/oss/python/langchain/multi-agent/subagents-personal-assistant)。这些模式说明不能替代本项目自身的真实模型评估。

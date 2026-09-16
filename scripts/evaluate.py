@@ -36,22 +36,59 @@ def main():
                         task = workflow.approve(task["task_id"], action != "reject")
                     if action in {"retry", "notify_retry"}:
                         task = workflow.retry(task["task_id"])
-                    passed = task["status"] == expected and task["notification_count"] == int(expected == "completed")
+                    passed = task["status"] == expected and task[
+                        "notification_count"
+                    ] == int(expected == "completed")
                     if task.get("analysis"):
                         totals = task["analysis"]["totals"]
-                        passed = passed and all(abs(total["rate"] - total["refunds"] / total["orders"]) < 1e-9 for total in totals.values())
-                    cases.append({"name": name, "passed": passed, "status": task["status"], "latency_ms": round((time.perf_counter() - start)*1000, 2)})
+                        passed = passed and all(
+                            abs(total["rate"] - total["refunds"] / total["orders"])
+                            < 1e-9
+                            for total in totals.values()
+                        )
+                    cases.append(
+                        {
+                            "name": name,
+                            "passed": passed,
+                            "status": task["status"],
+                            "latency_ms": round(
+                                (time.perf_counter() - start) * 1000, 2
+                            ),
+                        }
+                    )
                 except Exception as error:
-                    cases.append({"name": name, "passed": False, "error": type(error).__name__, "latency_ms": round((time.perf_counter()-start)*1000,2)})
+                    cases.append(
+                        {
+                            "name": name,
+                            "passed": False,
+                            "error": type(error).__name__,
+                            "latency_ms": round(
+                                (time.perf_counter() - start) * 1000, 2
+                            ),
+                        }
+                    )
             with closing(sqlite3.connect(workflow.orders_path)) as db:
                 db.row_factory = sqlite3.Row
-                rows = [dict(row) for row in db.execute("SELECT * FROM orders ORDER BY id")]
-            (root / "web/demo-data.json").write_text(json.dumps(rows, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+                rows = [
+                    dict(row) for row in db.execute("SELECT * FROM orders ORDER BY id")
+                ]
+            (root / "web/demo-data.json").write_text(
+                json.dumps(rows, ensure_ascii=False, separators=(",", ":")),
+                encoding="utf-8",
+            )
         finally:
             workflow.close()
-    report = {"generated_at": datetime.now(timezone.utc).isoformat(), "scope": "规则规划器 + 真实 LangGraph/SQLite 的 12 个固定场景回归，包含故障注入；不是开放式 LLM 能力基准。", "total": len(cases), "passed": sum(c["passed"] for c in cases), "cases": cases}
+    report = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "scope": "规则规划器 + 真实 LangGraph/SQLite 的 12 个固定场景回归，包含故障注入；不是开放式 LLM 能力基准。",
+        "total": len(cases),
+        "passed": sum(c["passed"] for c in cases),
+        "cases": cases,
+    }
     for path in [root / "docs/evaluation.json", root / "web/evaluation.json"]:
-        path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        path.write_text(
+            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
     print(json.dumps(report, ensure_ascii=False, indent=2))
     if report["passed"] != report["total"]:
         raise SystemExit(1)

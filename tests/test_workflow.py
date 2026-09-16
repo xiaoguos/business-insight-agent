@@ -1,9 +1,6 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-import sqlite3
 import pytest
-from fastapi.testclient import TestClient
-from app.planner import plan_question
 from app.tools import query_readonly, UnsafeQuery, analyze
 from app.workflow import Workflow
 
@@ -39,7 +36,9 @@ def test_restart_recovers_approval(tmp_path):
 def test_concurrent_duplicate_approval_is_idempotent(workflow):
     task = workflow.create("分析退款率")
     with ThreadPoolExecutor(max_workers=4) as pool:
-        results = list(pool.map(lambda _: workflow.approve(task["task_id"], True), range(4)))
+        results = list(
+            pool.map(lambda _: workflow.approve(task["task_id"], True), range(4))
+        )
     assert all(r["notification_count"] == 1 for r in results)
 
 
@@ -70,7 +69,10 @@ def test_critical_query_failure_stops_downstream(workflow):
 def test_transient_query_retry(workflow):
     task = workflow.create("分析退款率", fault="query_once")
     assert task["status"] == "awaiting_approval"
-    assert next(e for e in task["events"] if e["node"] == "query")["detail"] == "attempts=2"
+    assert (
+        next(e for e in task["events"] if e["node"] == "query")["detail"]
+        == "attempts=2"
+    )
 
 
 def test_noncritical_rule_failure_degrades(workflow):
@@ -89,7 +91,18 @@ def test_notification_retry_preserves_report(workflow):
     assert sum(e["node"] == "query" for e in done["events"]) == 1
 
 
-@pytest.mark.parametrize("sql", ["DELETE FROM orders", "SELECT * FROM orders; DROP TABLE orders", "SELECT * FROM sqlite_master", "SELECT * FROM orders UNION SELECT * FROM orders", "SELECT load_extension('x') FROM orders", "PRAGMA user_version", "SELECT * FROM other.orders"])
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "DELETE FROM orders",
+        "SELECT * FROM orders; DROP TABLE orders",
+        "SELECT * FROM sqlite_master",
+        "SELECT * FROM orders UNION SELECT * FROM orders",
+        "SELECT load_extension('x') FROM orders",
+        "PRAGMA user_version",
+        "SELECT * FROM other.orders",
+    ],
+)
 def test_unsafe_queries_blocked(workflow, sql):
     with pytest.raises(UnsafeQuery):
         query_readonly(workflow.orders_path, sql)
@@ -118,17 +131,25 @@ def test_missing_period_prevents_analysis():
         analyze({"rows": []})
 
 
-
 def test_mcp_tools_through_inmemory_client(tmp_path, monkeypatch):
     monkeypatch.setenv("INSIGHT_DATA_DIR", str(tmp_path))
     from fastmcp import Client
     from app.mcp_server import mcp
+
     async def exercise():
         async with Client(mcp) as client:
             tools = await client.list_tools()
-            assert {t.name for t in tools} == {"query_refund_metrics", "search_business_rules"}
-            result = await client.call_tool("query_refund_metrics", {"dimension": "channel"})
+            assert {t.name for t in tools} == {
+                "query_refund_metrics",
+                "search_business_rules",
+            }
+            result = await client.call_tool(
+                "query_refund_metrics", {"dimension": "channel"}
+            )
             assert not result.is_error
-            result = await client.call_tool("search_business_rules", {"query": "退款率"})
+            result = await client.call_tool(
+                "search_business_rules", {"query": "退款率"}
+            )
             assert not result.is_error
+
     asyncio.run(exercise())

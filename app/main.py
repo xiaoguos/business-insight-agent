@@ -8,18 +8,25 @@ from .production import Insight
 
 load_dotenv()
 
-def create_app(platform=None, planner=None):
-    platform=platform or Platform()
-    insight=Insight(platform, planner)
+
+def create_app(platform=None, agent_model=None):
+    platform = platform or Platform()
+    insight = Insight(platform, agent_model)
+
     @asynccontextmanager
     async def lifespan(app):
         yield
         platform.engine.dispose()
-    app=FastAPI(title="Business Insight",version="1.0.0",lifespan=lifespan)
-    app.state.platform=platform
-    app.state.insight=insight
-    app.state.handle_job=insight.handle_job
-    attach_common(app,platform)
+
+    app = FastAPI(title="Business Insight", version="1.0.0", lifespan=lifespan)
+    app.state.platform = platform
+    app.state.insight = insight
+    app.state.handle_job = insight.handle_job
+    attach_common(app, platform)
     app.include_router(insight.router())
-    app.mount("/",StaticFiles(directory=Path(__file__).resolve().parents[1]/"web",html=True),name="web")
+    app.mount(
+        "/",
+        StaticFiles(directory=Path(__file__).resolve().parents[1] / "web", html=True),
+        name="web",
+    )
     return app
