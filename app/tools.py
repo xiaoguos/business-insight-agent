@@ -1,5 +1,6 @@
 import json
 import sqlite3
+from contextlib import closing
 import time
 from pathlib import Path
 import sqlglot
@@ -32,7 +33,7 @@ def query_readonly(path, sql, params=(), timeout=.5):
     if any(node.name.lower() in {"load_extension", "readfile", "writefile"} for node in tree.find_all(exp.Anonymous)):
         raise UnsafeQuery("查询包含禁止函数")
     uri = Path(path).resolve().as_uri() + "?mode=ro"
-    with sqlite3.connect(uri, uri=True, timeout=2) as db:
+    with closing(sqlite3.connect(uri, uri=True, timeout=2)) as db:
         db.row_factory = sqlite3.Row
         db.execute("PRAGMA query_only=ON")
         deadline = time.monotonic() + timeout

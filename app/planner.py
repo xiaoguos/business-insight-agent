@@ -1,11 +1,13 @@
 import json
 import os
+import re
 from typing import Literal
 import httpx
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, ConfigDict
 
 
 class Plan(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     dimension: Literal["channel", "product"] = "channel"
     channel: Literal["自然流量", "广告投放", "合作渠道"] | None = None
     product: Literal["标准版", "专业版"] | None = None
@@ -15,6 +17,9 @@ class Plan(BaseModel):
 
 
 def plan_question(question, provider="rules"):
+    dates = re.findall(r"\d{4}-\d{2}-\d{2}", question)
+    if dates or any(word in question for word in ["去年", "上个月", "明年", "昨天", "今天", "明天", "利润", "毛利", "销售额"]):
+        return Plan(supported=False, clarification="当前仅支持页面列出的两个固定 7 天退款率窗口，暂不支持指定日期或其他指标；不会用整周数据替代单日查询。")
     if provider == "rules":
         if "退款" not in question:
             return Plan(supported=False, clarification="当前支持 2026-09-01 至 09-14 模拟数据的退款率分析，请明确按渠道或商品拆解。")

@@ -1,0 +1,15 @@
+{$PUBLIC_HOST} {
+    encode zstd gzip
+    request_body {
+        max_size 18MB
+    }
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "same-origin"
+        Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+        -Server
+    }
+    reverse_proxy api:8000
+}

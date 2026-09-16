@@ -3,12 +3,13 @@ from datetime import date, timedelta
 from pathlib import Path
 import random
 import sqlite3
+from contextlib import closing
 
 
 def seed_database(path):
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     rng = random.Random(42)
-    with sqlite3.connect(path) as db:
+    with closing(sqlite3.connect(path)) as db, db:
         db.execute("CREATE TABLE IF NOT EXISTS orders(id INTEGER PRIMARY KEY, created_at TEXT, channel TEXT, product TEXT, amount REAL, refunded INTEGER)")
         if db.execute("SELECT COUNT(*) FROM orders").fetchone()[0]:
             return

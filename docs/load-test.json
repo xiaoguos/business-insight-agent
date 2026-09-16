@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-09-16T08:07:48.539587+00:00",
+  "scope": "本地单进程、无生成模型的小规模 HTTP 并发模拟，不是生产容量测试",
+  "health": {
+    "status": "ok",
+    "planner": "rules",
+    "notifications": "local_outbox",
+    "authorization": false
+  },
+  "requests": 20,
+  "concurrency": 4,
+  "error_count": 0,
+  "error_rate": 0.0,
+  "p50_ms": 101.21,
+  "p95_ms": 146.5,
+  "elapsed_seconds": 0.553,
+  "requests_per_second": 36.14
+}

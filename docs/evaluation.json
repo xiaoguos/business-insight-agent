@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-09-16T08:02:33.464137+00:00",
+  "scope": "规则规划器 + 真实 LangGraph/SQLite 的 12 个固定场景回归，包含故障注入；不是开放式 LLM 能力基准。",
+  "total": 12,
+  "passed": 12,
+  "cases": [
+    {
+      "name": "渠道分析并审批",
+      "passed": true,
+      "status": "completed",
+      "latency_ms": 78.54
+    },
+    {
+      "name": "商品分析并审批",
+      "passed": true,
+      "status": "completed",
+      "latency_ms": 39.48
+    },
+    {
+      "name": "渠道过滤",
+      "passed": true,
+      "status": "completed",
+      "latency_ms": 39.5
+    },
+    {
+      "name": "商品过滤",
+      "passed": true,
+      "status": "completed",
+      "latency_ms": 39.96
+    },
+    {
+      "name": "人工拒绝",
+      "passed": true,
+      "status": "rejected",
+      "latency_ms": 40.67
+    },
+    {
+      "name": "关键查询失败",
+      "passed": true,
+      "status": "failed",
+      "latency_ms": 32.97
+    },
+    {
+      "name": "查询故障恢复",
+      "passed": true,
+      "status": "awaiting_approval",
+      "latency_ms": 53.02
+    },
+    {
+      "name": "瞬时查询重试",
+      "passed": true,
+      "status": "completed",
+      "latency_ms": 62.39
+    },
+    {
+      "name": "规则检索降级",
+      "passed": true,
+      "status": "completed",
+      "latency_ms": 40.76
+    },
+    {
+      "name": "通知故障隔离",
+      "passed": true,
+      "status": "notification_failed",
+      "latency_ms": 33.65
+    },
+    {
+      "name": "通知单独重试",
+      "passed": true,
+      "status": "completed",
+      "latency_ms": 44.64
+    },
+    {
+      "name": "不支持问题澄清",
+      "passed": true,
+      "status": "input_required",
+      "latency_ms": 11.53
+    }
+  ]
+}

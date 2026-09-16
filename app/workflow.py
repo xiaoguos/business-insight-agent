@@ -1,4 +1,4 @@
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -34,8 +34,8 @@ class State(TypedDict, total=False):
     events: list
 
 
-def event(state, node, status, detail="", **updates):
-    return {**updates, "events": state.get("events", []) + [{"node": node, "status": status, "detail": detail, "at": datetime.now(timezone.utc).isoformat()}]}
+def event(state, node, event_status, detail="", **updates):
+    return {**updates, "events": state.get("events", []) + [{"node": node, "status": event_status, "detail": detail, "at": datetime.now(timezone.utc).isoformat()}]}
 
 
 class Workflow:
@@ -68,8 +68,14 @@ class Workflow:
         graph.add_edge("notify", END)
         self.graph = graph.compile(checkpointer=self.checkpointer)
 
+    @contextmanager
     def db(self):
-        return sqlite3.connect(self.meta_path, timeout=10)
+        db = sqlite3.connect(self.meta_path, timeout=10)
+        try:
+            with db:
+                yield db
+        finally:
+            db.close()
 
     def close(self):
         self.stack.close()
