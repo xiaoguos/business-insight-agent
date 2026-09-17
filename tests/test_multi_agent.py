@@ -2,7 +2,7 @@ import json
 import threading
 import pytest
 from sqlalchemy import select
-from app.agents import AgentError, ToolDenied, search_rules
+from app.agents import AgentError, ModelReply, ToolDenied, search_rules
 from app.models import AgentRun, Notification, Task
 from app.platform import LeaseLost, uid
 from test_production_platform import headers
@@ -25,6 +25,37 @@ def create_with_rule(environment):
     payload["rule_ids"] = [rule.json()["id"]]
     task = client.post("/api/tasks", headers=analyst, json=payload).json()
     return app, client, admin, analyst, reviewer, task, rule.json()
+
+
+def test_decision_format_repair_is_bounded_and_does_not_execute_tools(environment):
+    app, client, admin, analyst, reviewer, task, rule = create_with_rule(environment)
+    original = app.state.insight.agent_model
+    bad = [True]
+
+    def repair_once(role, messages):
+        if role == "conductor" and bad[0]:
+            bad[0] = False
+            return ModelReply({"protocol": {}}, "test-format", 5)
+        return original(role, messages)
+
+    app.state.insight.agent_model = repair_once
+    app.state.handle_job(environment.claim())
+    traces = client.get("/api/tasks/" + task["id"] + "/agents", headers=analyst).json()
+    run = next(r for r in traces if r["agent"] == "conductor")
+    assert run["state"] == "succeeded" and run["model_calls"] == 2
+    assert any(e["kind"] == "format_repair" for e in run["events"])
+    assert not any(e["kind"] == "tool" for e in run["events"])
+
+
+def test_repeated_decision_format_errors_exhaust_existing_budget(environment):
+    app, client, admin, analyst, reviewer, task, rule = create_with_rule(environment)
+    app.state.insight.agent_model = lambda role, messages: ModelReply({"protocol": {}}, "test-format", 5)
+    with pytest.raises(AgentError, match="预算内修正"):
+        app.state.handle_job(environment.claim())
+    traces = client.get("/api/tasks/" + task["id"] + "/agents", headers=analyst).json()
+    assert len(traces) == 1 and traces[0]["model_calls"] == 4
+    assert traces[0]["state"] == "failed"
+    assert client.get("/api/tasks/" + task["id"], headers=analyst).json()["result"] == {}
 
 
 def test_four_independent_agents_parallel_join_and_durable_trace(environment):
@@ -52,6 +83,7 @@ def test_four_independent_agents_parallel_join_and_durable_trace(environment):
     knowledge = next(r for r in traces if r["agent"] == "knowledge")
     assert any(e.get("name") == "search_rules" for e in knowledge["events"])
     for role, messages in model.calls:
+        assert "json" in messages[0]["content"].lower()
         if len(messages) == 2:
             context = json.loads(messages[1]["content"])["context"]
             assert ("catalog" in context) == (role == "analysis")

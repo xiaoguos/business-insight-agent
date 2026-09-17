@@ -486,6 +486,13 @@ td {
     line-height: 1.7;
   }
 }
+#task-detail .evidence {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+#task-detail .muted {
+  overflow-wrap: anywhere;
+}
 @media (prefers-reduced-motion: reduce) {
   .spinner {
     animation: none;

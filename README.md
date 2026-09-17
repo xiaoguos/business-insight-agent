@@ -19,13 +19,13 @@
 
 ## 技术栈
 
-| 层次           | 技术                                            |
-| -------------- | ----------------------------------------------- |
-| API 与任务执行 | Python、FastAPI、独立 Worker                    |
-| Agent 编排     | LangGraph、独立角色上下文、受控工具调用         |
-| 数据与契约     | PostgreSQL、SQLAlchemy、Alembic、Pydantic       |
-| 规则与模型     | 中文词项检索、BM25、OpenAI-compatible API       |
-| 前端与部署     | ES Modules、CSS、Docker Compose、GitHub Actions |
+| 层次           | 技术                                                |
+| -------------- | --------------------------------------------------- |
+| API 与任务执行 | Python、FastAPI、独立 Worker                        |
+| Agent 编排     | LangGraph、独立角色上下文、受控工具调用             |
+| 数据与契约     | PostgreSQL、SQLAlchemy、Alembic、Pydantic           |
+| 规则与模型     | 中文词项检索、BM25、DeepSeek、OpenAI-compatible API |
+| 前端与部署     | ES Modules、CSS、Docker Compose、GitHub Actions     |
 
 ## 多 Agent 架构
 
@@ -95,31 +95,61 @@ flowchart TD
 
 ![创建分析任务](docs/screenshots/create-task.png)
 
-### 6. 分析工作台
+### 6. 后台任务执行
+
+提交任务后返回任务编号，后台执行过程中可查看状态与各角色进度。
+
+![后台任务与运行状态](docs/screenshots/task-running.png)
+
+### 7. 分析报告
+
+服务端计算退款指标，报告包含对比口径、分组结果、排查建议和规则原文，可下载 Markdown 文件。
+
+![多 Agent 分析报告](docs/screenshots/report.png)
+
+### 8. Agent 执行轨迹
+
+查看四类 Agent 的模型调用、Token 使用量、工具参数和状态事件。
+
+![四类 Agent 的真实执行轨迹](docs/screenshots/agent-trace.png)
+
+### 9. 独立审核
+
+由另一位审核人核对报告并填写意见，审批绑定当前报告校验值，发起人不能审核自己的报告。
+
+![审核人审批报告](docs/screenshots/approval.png)
+
+### 10. 分析工作台
 
 查看任务队列、执行状态、待审核数量和发布进度。
 
 ![分析工作台](docs/screenshots/tasks.png)
 
-### 7. 成员与权限
+### 11. 站内通知
+
+已通过审核的报告由发布作业写入发起人的站内通知。
+
+![已审核报告的站内通知](docs/screenshots/notifications.png)
+
+### 12. 从通知查看报告
+
+点击通知中的“查看报告”，回到对应任务的报告、审核意见和执行轨迹。
+
+![通知关联的报告详情](docs/screenshots/notification-report.png)
+
+### 13. 成员与权限
 
 管理员维护分析师、审核人等角色与账号状态。
 
 ![成员与权限](docs/screenshots/users.png)
 
-### 8. 操作审计
+### 14. 操作审计
 
 追踪数据导入、任务创建和管理操作。
 
 ![操作审计](docs/screenshots/audit.png)
 
-### 9. 站内通知
-
-已通过审核的报告由发布作业写入发起人的站内通知。
-
-![站内通知入口](docs/screenshots/notifications.png)
-
-### 10. 移动端访问
+### 15. 移动端访问
 
 <img src="docs/screenshots/mobile.png" alt="分析平台移动端" width="390">
 
@@ -145,6 +175,8 @@ npm test
 ```
 
 测试覆盖角色契约、并行汇合、工具权限、任务幂等、租约恢复、审批与发布。配置 `TEST_DATABASE_URL` 可运行 PostgreSQL 集成测试；实际模型流程运行参数见 `python -m scripts.acceptance --help`。
+
+本地已使用真实 DeepSeek 跑通四 Agent 执行、报告下载、独立审核和站内通知，并验证失败重试、自审限制、报告哈希校验与重复审批。运行截图使用验收订单及规则，记录见 [本地验收结果](docs/local-acceptance.json)。
 
 ## 在线访问
 

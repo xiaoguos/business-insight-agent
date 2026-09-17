@@ -15,7 +15,7 @@ GitHub Pages 仅发布 web/ 中的静态前端，不运行 Python、PostgreSQL �
 5. 执行 `docker compose exec api python -m scripts.preflight`。此命令会调用真实模型完成一个很小的 JSON 响应检查，会消耗模型额度；不打印密钥或模型内容。
 6. 执行 `docker compose --profile public up -d gateway`。确认域名已解析、80/443可达；Caddy 自动申请和续期 TLS。
 7. 验证 `https://你的域名/api/health` 与 `/api/ready`。health 仅代表 API 活着，ready 同时检查数据库与 Worker 最近心跳，不代表模型效果达标。
-8. 同源访问后端网页，或打开 GitHub Pages，在“服务连接设置”填写 HTTPS 后端地址。CORS_ORIGINS 必须包含准确的前端 Origin，不含路径；不用通配符。
+8. 同源访问后端网页，或由部署者在 web/config.json 的 api_base_url 配置 HTTPS 后端地址后发布 GitHub Pages。访问者无需填写服务地址。CORS_ORIGINS 必须包含准确的前端 Origin，不含路径；不用通配符。
 9. 由管理员创建普通成员、分析师或审核人，导入真实业务资料，并完成权限与工作流验收。
 
 ## 上线检查

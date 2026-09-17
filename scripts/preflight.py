@@ -37,6 +37,8 @@ def main():
                         "model": model,
                         "temperature": 0,
                         "max_tokens": 32,
+                        **({"thinking": {"type": os.environ["MODEL_THINKING"]}}
+                           if os.getenv("MODEL_THINKING") in {"enabled", "disabled"} else {}),
                         "messages": [
                             {"role": "user", "content": 'Return JSON: {"ok":true}'}
                         ],

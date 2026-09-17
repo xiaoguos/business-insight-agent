@@ -18,6 +18,7 @@ import {
 } from "./common.js";
 let selectedTask = null;
 let pollTimer = null;
+let workspaceUserId = null;
 const agentNames = {
   conductor: "调度 Agent",
   analysis: "数据分析 Agent",
@@ -208,17 +209,16 @@ async function tasks() {
     });
     selectedTask = result.id;
     await tasks();
-    await detail(result.id);
   });
   on("#refresh", async () => {
     await tasks();
-    if (selectedTask) await detail(selectedTask);
   });
   on(".task-detail", async (el) => {
     selectedTask = el.dataset.id;
     await detail(selectedTask);
     $("#task-detail").scrollIntoView({ behavior: "smooth", block: "start" });
   });
+  if (selectedTask) await detail(selectedTask);
 }
 async function detail(id) {
   clearTimeout(pollTimer);
@@ -371,18 +371,25 @@ async function notifications() {
     head(
       "INBOX",
       "站内通知",
-      "仅发布已通过审核的报告，不向外部邮件或消息平台模拟发送。",
+      "查看已审核发布的报告，点击通知返回对应任务详情。",
     ) +
     '<div class="card">' +
     table(
-      ["通知内容", "报告任务", "发布时间"],
+      ["通知内容", "报告任务", "发布时间", "操作"],
       rows.map((n) => [
         '<span class="badge good">报告已审核发布</span>',
         esc(n.task_id),
         date(n.created_at),
+        '<button class="btn small notification-detail" data-id="' +
+          esc(n.task_id) +
+          '">查看报告</button>',
       ]),
     ) +
     "</div>";
+  on(".notification-detail", (el) => {
+    selectedTask = el.dataset.id;
+    location.hash = "#tasks";
+  });
 }
 start({
   id: "insight",
@@ -413,5 +420,12 @@ start({
     { id: "users", label: "成员与权限", icon: "users", admin: true },
     { id: "audit", label: "审计日志", icon: "shield", admin: true },
   ],
-  render: (page) => ({ tasks, datasets, rules, agents, notifications })[page](),
+  render: (page) => {
+    if (workspaceUserId !== currentUser().id) {
+      workspaceUserId = currentUser().id;
+      selectedTask = null;
+      clearTimeout(pollTimer);
+    }
+    return { tasks, datasets, rules, agents, notifications }[page]();
+  },
 });

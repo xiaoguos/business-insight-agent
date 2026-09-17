@@ -73,15 +73,23 @@ class JsonModel:
                             "model": model,
                             "temperature": 0,
                             "max_tokens": 1800,
+                            **({"thinking": {"type": os.environ["MODEL_THINKING"]}}
+                               if os.getenv("MODEL_THINKING") in {"enabled", "disabled"} else {}),
                             "messages": messages,
                             "response_format": {"type": "json_object"},
                         },
                     )
                     response.raise_for_status()
                     body = response.json()
-                    decision = json.loads(body["choices"][0]["message"]["content"])
+                    try:
+                        decision = json.loads(body["choices"][0]["message"]["content"])
+                    except json.JSONDecodeError:
+                        # Never pick the first object from multiple decisions.
+                        # Invalid content enters the bounded runtime repair path
+                        # while retaining real usage accounting for this call.
+                        decision = {}
                     if not isinstance(decision, dict):
-                        raise AgentError("模型响应不是对象")
+                        decision = {}
                     return ModelReply(
                         decision,
                         model,
@@ -168,7 +176,12 @@ class AgentRuntime:
             {
                 "role": "system",
                 "content": PROMPTS[role]
-                + "\n"
+                + "\n每轮只返回一个JSON决策对象，顶层只能有action、tool、arguments、output。"
+                + "调用工具时action=tool，tool为工具名称，arguments为参数，output={}。"
+                + "单轮只能调用一个工具，不能拼接多个JSON；返回工具决策后立即停止，等待下一轮的tool_observation再决策。"
+                + "结束时action=final，tool=null，arguments={}，output填写output_schema要求的业务结果。"
+                + "下方是输入配置，不要返回或复制protocol、tools、output_schema、recommendations这些配置字段。"
+                + "不要Markdown代码围栏。\n输入配置：\n"
                 + json.dumps(
                     {
                         "protocol": protocol,
@@ -217,7 +230,21 @@ class AgentRuntime:
                     model_calls=calls,
                     total_tokens=tokens,
                 )
-                decision = Decision.model_validate(reply.decision)
+                try:
+                    decision = Decision.model_validate(reply.decision)
+                except ValidationError as error:
+                    # A format repair spends the SAME four-turn budget. It does
+                    # not execute tools or relax authorization/citation checks.
+                    record({"kind": "format_repair", "turn": turn + 1})
+                    if turn == 3:
+                        raise AgentError("Agent输出格式未在预算内修正") from error
+                    messages.extend([
+                        {"role": "assistant", "content": json.dumps(reply.decision, ensure_ascii=False)},
+                        {"role": "user", "content": "格式错误。只返回JSON决策对象："
+                         '{"action":"final","tool":null,"arguments":{},"output":{业务结果字段}}。'
+                         "需要工具则action=tool。不要返回配置字段，业务结果必须满足output_schema。"},
+                    ])
+                    continue
                 if decision.action == "final":
                     if decision.tool is not None or decision.arguments:
                         raise AgentError("final不得附带工具调用")

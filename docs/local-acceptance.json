@@ -1,0 +1,69 @@
+{
+  "verified_at": "2026-09-17T13:32:16.518212+00:00",
+  "scope": "local business acceptance",
+  "database": "persistent SQLite (APP_ENV=test)",
+  "model": "deepseek-flash",
+  "model_mode": "live",
+  "data": "synthetic acceptance fixtures",
+  "http_checks": {
+    "insight.real_dataset_and_rule_import": true,
+    "insight.submit_idempotency": true,
+    "insight.actual_failed_task_retry": true,
+    "insight.four_live_agents_succeeded": true,
+    "insight.server_computed_metrics": true,
+    "insight.four_eyes_self_review_denied": true,
+    "insight.stale_report_review_denied": true,
+    "insight.approval_publish_notification": true,
+    "insight.repeated_approval_denied": true,
+    "insight.revoked_session_denied": true
+  },
+  "browser_passed": true,
+  "public_backend_deployed": false,
+  "production_capacity_verified": false,
+  "owned_service_restart_recovery_passed": true,
+  "same_tab_identity_switch_passed": true,
+  "browser_checks": [
+    "login",
+    "task_creation",
+    "four_live_agents",
+    "exact_report_download",
+    "independent_reviewer_approval",
+    "notification",
+    "notification_links_to_report",
+    "390px_no_horizontal_overflow"
+  ],
+  "agents": [
+    {
+      "role": "conductor",
+      "state": "succeeded",
+      "model_calls": 1,
+      "total_tokens": 773
+    },
+    {
+      "role": "knowledge",
+      "state": "succeeded",
+      "model_calls": 2,
+      "total_tokens": 1614
+    },
+    {
+      "role": "analysis",
+      "state": "succeeded",
+      "model_calls": 2,
+      "total_tokens": 1805
+    },
+    {
+      "role": "report",
+      "state": "succeeded",
+      "model_calls": 3,
+      "total_tokens": 5033
+    }
+  ],
+  "verified_metrics": {
+    "baseline_orders": 40,
+    "current_orders": 40,
+    "baseline_refund_rate": 0.075,
+    "current_refund_rate": 0.175,
+    "delta_percentage_points": 10
+  },
+  "notification_count_for_verified_task": 1
+}
