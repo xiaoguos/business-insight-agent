@@ -50,6 +50,22 @@ def add_user(client, admin, email, role, departments=None):
     return response.json()
 
 
+def test_explicit_no_store_headers_are_preserved(environment):
+    from starlette.responses import JSONResponse
+    from starlette.routing import Route
+
+    app = create_app(environment)
+
+    async def sensitive_configuration(request):
+        return JSONResponse({"fixture": True}, headers={"Cache-Control": "no-store"})
+
+    app.router.routes.insert(0, Route("/sensitive-configuration", sensitive_configuration))
+    with TestClient(app) as client:
+        assert client.get("/sensitive-configuration").headers["Cache-Control"] == "no-store"
+        assert client.get("/api/health").headers["Cache-Control"] == "no-store"
+        assert client.get("/").headers["Cache-Control"] == "no-cache"
+
+
 def test_auth_tenant_roles_and_revocation(environment):
     with TestClient(create_app(environment)) as client:
         assert client.get("/api/users").status_code == 401

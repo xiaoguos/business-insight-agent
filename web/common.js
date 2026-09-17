@@ -240,6 +240,7 @@ export async function start(options) {
       base = endpoint.href.replace(/\/$/, "");
     }
     if (
+      location.hostname.endsWith("github.io") &&
       typeof runtime.public_trial_login?.email === "string" &&
       typeof runtime.public_trial_login?.password === "string"
     )

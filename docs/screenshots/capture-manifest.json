@@ -1,0 +1,20 @@
+{
+  "project": "business-insight-agent",
+  "commit": "40fe3e65fb2706569d4891811f54428957a87d68",
+  "captured_at": "2026-09-17T12:54:18Z",
+  "database": "isolated SQLite",
+  "model_generation": "not exercised",
+  "javascript_errors": [],
+  "files": {
+    "login.png": "b09e253ff84b9365c148ab2649d85dd9dbb6922672fbadf3d7bc676c1875aa37",
+    "rules.png": "0f7c42f937bda4fe81e01a8a64c3f32ab168d40ff4ca94c00503b42fa38a25d3",
+    "users.png": "182f732952e4bd557697e41357c0a93a02647e9c9dce889e74552b21b766b51d",
+    "mobile.png": "f7ef5d7bdf91931e8795dbfe1f53521585550d9689823283b5a95eb961a70564",
+    "agents.png": "4ba387813be54fa4eadd38d0a3d299cf0bd4d08a191cae15b37b16d1c7811392",
+    "notifications.png": "1e63290f1e205d3d3fcf85fb9a2b3d56147c2f5b39d36de16aa198eb9ac8be42",
+    "tasks.png": "501f6fb72e76d4746cf47f82d39f258cfee72124223b801f9b7ae154bb7e96c1",
+    "datasets.png": "94335ae46c36adccbd1ff013af2303a18e4ec76bf0c37d189814e6e12053d4d6",
+    "create-task.png": "501f6fb72e76d4746cf47f82d39f258cfee72124223b801f9b7ae154bb7e96c1",
+    "audit.png": "dba56d46d71fc82198dd3879e332de987cd5fec852eeecfb268107adfc0be2ce"
+  }
+}

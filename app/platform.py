@@ -526,7 +526,10 @@ def attach_common(app, platform):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "same-origin"
         response.headers["Cache-Control"] = (
-            "no-store" if request.url.path.startswith("/api") else "no-cache"
+            "no-store"
+            if request.url.path.startswith("/api")
+            or "no-store" in response.headers.get("Cache-Control", "")
+            else "no-cache"
         )
         log.info(
             "request id=%s method=%s path=%s status=%s duration_ms=%.2f",

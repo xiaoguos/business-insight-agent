@@ -1,1 +1,7 @@
-{"api_base_url":""}
+{
+  "api_base_url": "",
+  "public_trial_login": {
+    "email": "visitor@trial.test",
+    "password": "Visitor-Access-2026"
+  }
+}
