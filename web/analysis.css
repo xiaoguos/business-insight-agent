@@ -1,0 +1,493 @@
+/* Analysis: compact task operations, blue ink, and a horizontal navigation bar. */
+:root {
+  --accent: #234da4;
+  --line: #dce2eb;
+  --muted: #59687f;
+  --nav: #182b4d;
+  background: #f3f5f8;
+  color: #202e45;
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+.shell {
+  display: block;
+}
+.sidebar {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  padding: 0 30px;
+  height: auto;
+  min-height: 80px;
+  flex-direction: row;
+  align-items: center;
+  gap: 34px;
+  background: #182b4d;
+}
+.brand {
+  margin: 0;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: 0;
+  font-weight: 600;
+  max-width: 270px;
+}
+.brand > div {
+  min-width: 0;
+}
+.brand small {
+  color: #b2c0d8;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.project-seal {
+  background: #2c4b7c;
+  color: #fff;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 3px;
+  font-size: 20px;
+  font-weight: 500;
+}
+.navlabel,
+.sidebar-footer {
+  display: none;
+}
+.sidebar nav {
+  display: flex;
+  gap: 4px;
+  overflow: auto;
+  flex: 1;
+  align-self: stretch;
+}
+.navlink {
+  margin: 0;
+  padding: 0 12px;
+  border-radius: 0;
+  color: #c8d4e6;
+  white-space: nowrap;
+  gap: 7px;
+  border: 0;
+  font-size: 13px;
+}
+.navlink svg {
+  display: none;
+}
+.navlink:hover {
+  background: #243a5d;
+  color: #fff;
+}
+.navlink.active {
+  padding-left: 12px;
+  background: #243a5d;
+  border: 0;
+  border-bottom: 3px solid #7da2e8;
+  color: #fff;
+}
+.main {
+  min-width: 0;
+}
+.topbar {
+  height: 50px;
+  background: #fff;
+  padding: 0 32px;
+}
+.breadcrumb,
+.breadcrumb strong {
+  color: #576a85;
+}
+.avatar {
+  background: #e4ebf9;
+  color: #234da4;
+  border-radius: 3px;
+  width: 28px;
+  height: 28px;
+}
+.account {
+  font-size: 12px;
+}
+.content {
+  max-width: 1600px;
+  padding: 25px 32px;
+}
+.pagehead {
+  margin-bottom: 20px;
+  align-items: flex-end;
+}
+.eyebrow {
+  color: #5a6d86;
+  font-size: 11px;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+h1 {
+  font-size: 25px;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+h2 {
+  font-size: 15px;
+}
+.muted {
+  color: #59687f;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.card {
+  border-radius: 4px;
+  box-shadow: none;
+  padding: 22px;
+  margin-bottom: 18px;
+}
+.stats {
+  gap: 0;
+  background: #fff;
+  border: 1px solid var(--line);
+  margin-bottom: 20px;
+}
+.stat {
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  padding: 15px 22px;
+  background: transparent;
+}
+.stat:last-child {
+  border-right: 0;
+}
+.stat-label {
+  font-size: 12px;
+  color: #59687f;
+}
+.stat-label svg {
+  display: none;
+}
+.stat-number {
+  font:
+    600 25px/1.3 "Consolas",
+    monospace;
+  color: #234da4;
+  margin: 7px 0;
+}
+.stat-note {
+  color: #687994;
+  font-size: 11px;
+}
+#view:has(.task-create) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 410px;
+  gap: 0 22px;
+  align-items: start;
+}
+#view:has(.task-create) > .pagehead,
+#view:has(.task-create) > .stats {
+  grid-column: 1 / -1;
+}
+.task-create {
+  grid-column: 2;
+  grid-row: 3;
+}
+.task-list {
+  grid-column: 1;
+  grid-row: 3;
+  min-height: 320px;
+  padding: 0;
+}
+.task-list > h2 {
+  padding: 20px 22px;
+  margin: 0;
+  border-bottom: 1px solid var(--line);
+}
+.task-list .empty {
+  padding: 80px 20px;
+}
+.task-list table {
+  white-space: normal;
+  table-layout: fixed;
+}
+.task-list th:nth-child(1) {
+  width: 38%;
+}
+.task-list th:nth-child(2) {
+  width: 15%;
+}
+.task-list th:nth-child(3) {
+  width: 16%;
+}
+.task-list th:nth-child(4) {
+  width: 18%;
+}
+.task-list td {
+  overflow-wrap: anywhere;
+}
+.task-create > .cardhead {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 17px;
+}
+.task-create #create-task > .grid2 {
+  grid-template-columns: minmax(0, 1fr);
+}
+.task-create textarea {
+  min-height: 90px;
+}
+.task-create input,
+.task-create select,
+.task-create textarea {
+  padding: 9px 10px;
+}
+.task-create form label:not(:first-child) {
+  margin-top: 14px;
+}
+.task-create .actions .primary {
+  width: 100%;
+}
+#task-detail {
+  grid-column: 1 / -1;
+}
+.btn {
+  border-radius: 4px;
+  min-height: 36px;
+  font-size: 12px;
+  border-color: #cbd5e4;
+}
+.btn.primary {
+  background: #234da4;
+  border-color: #234da4;
+}
+button:focus-visible,
+a:focus-visible {
+  outline-color: #234da4;
+}
+input,
+select,
+textarea {
+  border-radius: 4px;
+  border-color: #cbd5e4;
+  color: #202e45;
+}
+input:focus,
+textarea:focus,
+select:focus {
+  box-shadow: 0 0 0 3px #234da414;
+}
+label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #52617a;
+}
+.badge {
+  border-radius: 3px;
+}
+.badge:not(.good):not(.bad):not(.warn) {
+  background: #e9eef7;
+  color: #3f5a83;
+}
+th {
+  background: #eef2f7;
+  color: #52617a;
+  font-size: 11px;
+  padding: 13px 14px;
+}
+td {
+  padding: 15px 14px;
+  border-color: #e7ecf2;
+  font-size: 12px;
+}
+.notice {
+  background: #e8eef9;
+  color: #36588d;
+  border-radius: 3px;
+}
+.empty {
+  font-size: 13px;
+  color: #66758c;
+}
+.footer {
+  font-size: 11px;
+  color: #687994;
+}
+.grid2:has(.cardhead .badge) > .card {
+  border-radius: 3px;
+}
+.grid2:has(.cardhead .badge) > .card .cardhead {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.spinner {
+  border-color: #ced9ed;
+  border-top-color: var(--accent);
+}
+.login-layout {
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
+}
+.login-intro {
+  background: #182b4d;
+  padding: 9vh 12%;
+  color: #fff;
+}
+.login-intro .brand {
+  max-width: 380px;
+  font-size: 16px;
+}
+.login-intro h1 {
+  font-size: clamp(32px, 3.3vw, 48px);
+  line-height: 1.5;
+  letter-spacing: 1px;
+  font-weight: 500;
+}
+.login-intro .eyebrow {
+  color: #b2c4e1;
+  padding-bottom: 10px;
+}
+.login-intro p {
+  color: #b8c6dd;
+  font-size: 14px;
+}
+.login-story {
+  padding: 26px 0;
+}
+.login-steps {
+  padding: 30px 0 0;
+  list-style: none;
+  counter-reset: step;
+}
+.login-steps li {
+  counter-increment: step;
+  padding: 14px 0;
+  border-top: 1px solid #3b5071;
+  font-size: 14px;
+}
+.login-steps li::before {
+  content: "0" counter(step) " /";
+  font-family: "Consolas", monospace;
+  color: #8ba8d8;
+  margin-right: 18px;
+}
+.login-form {
+  background: #fff;
+  padding: 8vh 11%;
+}
+.login-box {
+  max-width: 435px;
+}
+.login-box .brand {
+  max-width: none;
+  font-size: 15px;
+  margin-bottom: 42px;
+  color: #243d63;
+}
+.login-box h1 {
+  font-size: 24px;
+}
+.login-box input {
+  min-height: 47px;
+}
+.login-box details {
+  color: #59687f;
+  font-size: 12px;
+}
+.login-box .brand {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1150px) {
+  .sidebar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px 24px 0;
+    gap: 15px;
+  }
+  .sidebar .brand {
+    max-width: 420px;
+  }
+  .sidebar nav {
+    width: 100%;
+    min-height: 48px;
+  }
+  #view:has(.task-create) {
+    grid-template-columns: minmax(0, 1fr) 350px;
+  }
+  .task-list table {
+    table-layout: auto;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 900px) {
+  #view:has(.task-create) {
+    display: block;
+  }
+  .task-create #create-task > .grid2 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+@media (max-width: 760px) {
+  .sidebar {
+    padding: 18px 16px 0;
+  }
+  .sidebar .brand {
+    font-size: 14px;
+  }
+  .sidebar .brand small {
+    display: none;
+  }
+  .sidebar nav {
+    padding-top: 0;
+    min-height: 48px;
+  }
+  .navlink {
+    min-height: 44px;
+    font-size: 12px;
+  }
+  .content {
+    padding: 24px 16px;
+  }
+  .stats {
+    grid-template-columns: 1fr 1fr;
+  }
+  .stat {
+    border-bottom: 1px solid var(--line);
+    padding: 14px;
+  }
+  .stat:nth-child(2n) {
+    border-right: 0;
+  }
+  .stat:nth-child(n + 3) {
+    border-bottom: 0;
+  }
+  .task-create #create-task > .grid2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .card {
+    padding: 18px;
+  }
+  .task-list {
+    padding: 0;
+  }
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  .login-layout {
+    display: block;
+  }
+  .login-intro {
+    display: none;
+  }
+  .login-form {
+    min-height: 100vh;
+    padding: 8vh 22px;
+  }
+  .footer {
+    flex-direction: column;
+    line-height: 1.7;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}

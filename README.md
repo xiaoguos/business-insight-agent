@@ -1,4 +1,25 @@
-# Prism Insight · 企业多 Agent 分析与审批平台
+# 企业多智能体业务分析与审批平台
+
+[在线界面](https://xiaoguos.github.io/business-insight-agent/) · [部署指南](docs/deployment.md) · [多智能体说明](docs/multi-agent.md) · [运行截图说明](docs/screenshots/README.md)
+
+任务型业务工作台：横向导航、任务队列与新建分析分区；数据快照、规则证据、独立 Agent 轨迹和人工审批围绕同一分析任务衔接。
+
+```mermaid
+flowchart TD
+    U[分析师选择数据与规则快照] --> Q[持久作业队列 / Worker]
+    Q --> C[调度 Agent]
+    C --> A[数据分析 Agent]
+    C --> K[知识检索 Agent]
+    A --> T[受控查询 / 服务端计算]
+    K --> E[规则检索 / 引文核验]
+    T --> R[报告 Agent 汇合]
+    E --> R
+    R --> V[服务端校验与渲染报告]
+    V --> H[另一位审核人审批]
+    H --> N[报告哈希绑定 / 站内发布]
+```
+
+当前截图说明页中的图片为此前界面版本的真实运行记录，不代表本次新版布局；新版截图将在浏览器实际运行验收后替换，不使用合成图代替。
 
 以真实订单与业务规则为输入，由四个独立 Agent 协作生成可审核报告：**Conductor → Analysis ∥ Knowledge → Report → 人工审批 → 站内发布**。
 

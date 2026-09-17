@@ -18,7 +18,7 @@ def create_app(platform=None, agent_model=None):
         yield
         platform.engine.dispose()
 
-    app = FastAPI(title="Business Insight", version="1.0.0", lifespan=lifespan)
+    app = FastAPI(title="企业多智能体业务分析与审批平台", version="1.0.0", lifespan=lifespan)
     app.state.platform = platform
     app.state.insight = insight
     app.state.handle_job = insight.handle_job

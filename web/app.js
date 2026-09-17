@@ -148,7 +148,7 @@ async function tasks() {
     ) +
     "</div>" +
     (["admin", "analyst"].includes(currentUser().role)
-      ? '<div class="card"><div class="cardhead"><h2>发起退款分析</h2><span class="badge">多 Agent 编排</span></div><form id="create-task"><div class="grid2"><div><label>数据快照</label><select name="dataset_id" required><option value="">请选择已导入的数据集</option>' +
+      ? '<div class="card task-create"><div class="cardhead"><h2>新建分析任务</h2><span class="badge">退款分析</span></div><form id="create-task"><div class="grid2"><div><label>数据快照</label><select name="dataset_id" required><option value="">请选择已导入的数据集</option>' +
         data
           .map(
             (d) =>
@@ -171,7 +171,7 @@ async function tasks() {
           : "") +
         "</div></form></div>"
       : "") +
-    '<div class="card"><h2>任务列表</h2>' +
+    '<div class="card task-list"><h2>任务队列</h2>' +
     table(
       ["分析问题", "运行状态", "数据快照", "创建时间", "操作"],
       rows.map((t) => [
@@ -386,10 +386,21 @@ async function notifications() {
 }
 start({
   id: "insight",
-  brand: "Prism Insight",
-  title: "Prism Insight · 企业分析工作台",
+  brand: "企业多智能体业务分析与审批平台",
+  title: "企业多智能体业务分析与审批平台",
+  seal: "析",
+  workspaceLabel: "业务分析 · 任务与审批",
+  loginLabel: "业务分析任务中心",
+  loginHeading: "登录分析与审批平台",
+  loginFootnote: "数据快照固定 · 分析过程可查 · 审批后发布",
+  footer: "业务口径明确 · 执行过程可查",
+  steps: [
+    "选择订单与规则快照",
+    "多 Agent 协作执行分析",
+    "审核报告，再发布结果",
+  ],
   symbol: "grid",
-  tagline: "从业务问题<br>到可信的分析行动。",
+  tagline: "任务有进展，<br>分析有交代。",
   description:
     "连接真实业务数据与业务规则，通过多 Agent 分工完成分析。每次工具调用可追踪，每份报告经审核后发布。",
   defaultPage: "tasks",

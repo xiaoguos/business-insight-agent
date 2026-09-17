@@ -80,7 +80,8 @@ export const table = (headers, rows) =>
 let token = "",
   user = null,
   base = "",
-  config;
+  config,
+  localTestLogin = null;
 export const currentUser = () => user;
 export async function api(path, options = {}) {
   const headers = { ...options.headers };
@@ -168,25 +169,44 @@ export function on(selector, handler) {
 function login() {
   document.title = config.title;
   $("#app").innerHTML =
-    '<div class="login-layout"><aside class="login-intro"><div class="brand">' +
-    icon("shield") +
-    " " +
+    '<div class="login-layout"><aside class="login-intro"><div class="brand"><span class="project-seal">' +
+    esc(config.seal) +
+    "</span>" +
     esc(config.brand) +
-    '</div><div><div class="eyebrow">ENTERPRISE WORKSPACE</div><h1>' +
+    '</div><div class="login-story"><div class="eyebrow">' +
+    esc(config.loginLabel) +
+    "</div><h1>" +
     config.tagline +
     "</h1><p>" +
     esc(config.description) +
-    '</p></div><p>身份验证 · 资源授权 · 操作审计<br>企业专属工作空间</p></aside><section class="login-form"><div class="login-box"><div class="brand"><span class="brand-mark">' +
-    icon(config.symbol) +
+    '</p><ol class="login-steps">' +
+    config.steps.map((step) => "<li>" + esc(step) + "</li>").join("") +
+    '</ol></div><p class="login-footnote">' +
+    esc(config.loginFootnote) +
+    '</p></aside><section class="login-form"><div class="login-box"><div class="brand"><span class="project-seal">' +
+    esc(config.seal) +
     "</span>" +
     esc(config.brand) +
-    '</div><h1>登录工作空间</h1><p class="muted">使用管理员为你创建的企业账号登录。</p><div id="feedback"></div><form id="login"><label for="email">企业邮箱</label><input id="email" name="email" type="email" autocomplete="username" required placeholder="name@company.com"><label for="password">登录密码</label><input id="password" name="password" type="password" autocomplete="current-password" required placeholder="输入账号密码"><button class="btn primary" type="submit">安全登录 ' +
+    "</div><h1>" +
+    esc(config.loginHeading) +
+    '</h1><p class="muted">使用企业账号或访客账号继续。</p><div id="feedback"></div><form id="login"><label for="email">登录邮箱</label><input id="email" name="email" type="email" autocomplete="username" required placeholder="请输入账号邮箱"><label for="password">登录密码</label><input id="password" name="password" type="password" autocomplete="current-password" required placeholder="输入账号密码"><button class="btn primary" type="submit">进入平台 ' +
     icon("arrow") +
     "</button></form><details " +
     (!base && location.hostname.endsWith("github.io") ? "open" : "") +
     '><summary>服务连接设置</summary><label for="backend">后端服务地址（不含 /api）</label><input id="backend" type="url" placeholder="https://api.your-company.com" value="' +
     esc(base) +
     '"><p>GitHub Pages 仅承载界面。需要连接已部署的后端；不会切换到演示数据。</p></details></div></section></div>';
+  if (localTestLogin) {
+    $("#email").placeholder = "本地测试邮箱：" + localTestLogin.email;
+    $("#password").placeholder = "本地测试密码：" + localTestLogin.password;
+    const hint = document.createElement("p");
+    hint.className = "muted";
+    hint.textContent =
+      "输入框中的提示为本机专用测试凭据，填写后即可登录；请勿公开分享。";
+    $("#login").append(hint);
+  } else if (location.hostname.endsWith("github.io")) {
+    $("#password").placeholder = "由后端管理员提供，无公共测试密码";
+  }
   bindForm("#login", async (data) => {
     const entered = $("#backend").value.trim().replace(/\/$/, "");
     if (entered) {
@@ -218,6 +238,12 @@ export async function start(options) {
     const response = await fetch("./config.json");
     const runtime = await response.json();
     base = runtime.api_base_url || "";
+    if (
+      ["127.0.0.1", "localhost", "[::1]"].includes(location.hostname) &&
+      typeof runtime.local_test_login?.email === "string" &&
+      typeof runtime.local_test_login?.password === "string"
+    )
+      localTestLogin = runtime.local_test_login;
   } catch {}
   base = localStorage.getItem(config.id + "-api") || base;
   window.addEventListener("hashchange", () => {
@@ -233,11 +259,13 @@ export async function navigate() {
   );
   const selected = nav.find((n) => n.id === page) || nav[0];
   $("#app").innerHTML =
-    '<div class="shell"><aside class="sidebar"><div class="brand"><span class="brand-mark">' +
-    icon(config.symbol) +
+    '<div class="shell"><aside class="sidebar"><div class="brand"><span class="project-seal">' +
+    esc(config.seal) +
     "</span><div>" +
     esc(config.brand) +
-    '<small>ENTERPRISE</small></div></div><div class="navlabel">WORKSPACE</div><nav>' +
+    "<small>" +
+    esc(config.workspaceLabel) +
+    '</small></div></div><div class="navlabel">工作区</div><nav>' +
     nav
       .map(
         (n) =>
@@ -274,7 +302,9 @@ export async function navigate() {
     icon("logout") +
     '</button></div></header><section class="content"><div id="feedback"></div><div id="view"><div class="loading"><div class="spinner"></div>正在读取工作空间</div></div><div class="footer"><span>' +
     esc(config.brand) +
-    " · Enterprise Workspace</span><span>服务端存储 · 操作可追踪</span></div></section></main></div>";
+    "</span><span>" +
+    esc(config.footer) +
+    "</span></div></section></main></div>";
   on("#logout", async () => {
     try {
       await post("/auth/logout", {});
@@ -295,7 +325,7 @@ export async function navigate() {
 }
 export const head = (eyebrow, title, description, action = "") =>
   '<div class="pagehead"><div><div class="eyebrow">' +
-  esc(eyebrow) +
+  esc(config.workspaceLabel) +
   "</div><h1>" +
   esc(title) +
   '</h1><p class="muted">' +
