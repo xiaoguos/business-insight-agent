@@ -202,6 +202,8 @@ function login() {
       "输入框中的提示为本机专用测试凭据，填写后即可登录；请勿公开分享。";
     $("#login").append(hint);
   } else if (publicTrialLogin) {
+    $("#email").placeholder = "测试邮箱：" + publicTrialLogin.email;
+    $("#password").placeholder = "测试密码：" + publicTrialLogin.password;
     $("#email").value = publicTrialLogin.email;
     $("#password").value = publicTrialLogin.password;
     const hint = document.createElement("p");
@@ -227,12 +229,20 @@ export async function start(options) {
     const runtime = await response.json();
     if (typeof runtime.api_base_url === "string" && runtime.api_base_url) {
       const endpoint = new URL(runtime.api_base_url);
-      if (endpoint.protocol !== "https:" || endpoint.username || endpoint.password || endpoint.search || endpoint.hash)
+      if (
+        endpoint.protocol !== "https:" ||
+        endpoint.username ||
+        endpoint.password ||
+        endpoint.search ||
+        endpoint.hash
+      )
         throw new Error("Invalid deployment endpoint");
       base = endpoint.href.replace(/\/$/, "");
     }
-    if (typeof runtime.public_trial_login?.email === "string" &&
-        typeof runtime.public_trial_login?.password === "string")
+    if (
+      typeof runtime.public_trial_login?.email === "string" &&
+      typeof runtime.public_trial_login?.password === "string"
+    )
       publicTrialLogin = runtime.public_trial_login;
     if (
       ["127.0.0.1", "localhost", "[::1]"].includes(location.hostname) &&

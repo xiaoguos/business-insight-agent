@@ -58,7 +58,7 @@ def main():
             uploaded.raise_for_status()
             for _ in range(120):
                 rows = client.get("/api/documents").json()
-                if any(row.get("state") == "ready" for row in rows):
+                if any(row.get("searchable") and row.get("status") == "ready" for row in rows):
                     break
                 time.sleep(1)
             else:

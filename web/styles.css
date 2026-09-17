@@ -281,6 +281,7 @@ h3 {
   color: #91a0b3;
 }
 .card {
+  min-width: 0;
   background: white;
   border: 1px solid var(--line);
   border-radius: 10px;
