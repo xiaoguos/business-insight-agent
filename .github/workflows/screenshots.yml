@@ -1,0 +1,36 @@
+name: Capture current interface
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install ".[dev]" playwright
+      - run: python -m playwright install --with-deps chromium
+      - run: python -m scripts.capture_screenshots
+      - uses: actions/upload-artifact@v4
+        with:
+          name: current-ui
+          path: |
+            docs/screenshots/login.png
+            docs/screenshots/documents.png
+            docs/screenshots/ask.png
+            docs/screenshots/users.png
+            docs/screenshots/audit.png
+            docs/screenshots/datasets.png
+            docs/screenshots/rules.png
+            docs/screenshots/agents.png
+            docs/screenshots/tasks.png
+            docs/screenshots/notifications.png
+            docs/screenshots/create-task.png
+            docs/screenshots/mobile.png
+            docs/screenshots/capture-manifest.json
+          if-no-files-found: error

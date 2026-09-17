@@ -81,7 +81,8 @@ let token = "",
   user = null,
   base = "",
   config,
-  localTestLogin = null;
+  localTestLogin = null,
+  publicTrialLogin = null;
 export const currentUser = () => user;
 export async function api(path, options = {}) {
   const headers = { ...options.headers };
@@ -99,14 +100,14 @@ export async function api(path, options = {}) {
     throw new Error(
       error.name === "TimeoutError"
         ? "请求超时；任务可能已受理，请刷新任务列表确认。"
-        : "无法连接后端服务，请检查服务地址与网络。",
+        : "服务暂时无法连接，请稍后重试。",
     );
   }
   let body;
   try {
     body = await response.json();
   } catch {
-    throw new Error("服务返回格式异常，请确认地址指向后端 API 服务。");
+    throw new Error("服务响应异常，请稍后重试。");
   }
   if (!response.ok) {
     if (response.status === 401 && token) {
@@ -191,11 +192,7 @@ function login() {
     esc(config.loginHeading) +
     '</h1><p class="muted">使用企业账号或访客账号继续。</p><div id="feedback"></div><form id="login"><label for="email">登录邮箱</label><input id="email" name="email" type="email" autocomplete="username" required placeholder="请输入账号邮箱"><label for="password">登录密码</label><input id="password" name="password" type="password" autocomplete="current-password" required placeholder="输入账号密码"><button class="btn primary" type="submit">进入平台 ' +
     icon("arrow") +
-    "</button></form><details " +
-    (!base && location.hostname.endsWith("github.io") ? "open" : "") +
-    '><summary>服务连接设置</summary><label for="backend">后端服务地址（不含 /api）</label><input id="backend" type="url" placeholder="https://api.your-company.com" value="' +
-    esc(base) +
-    '"><p>GitHub Pages 仅承载界面。需要连接已部署的后端；不会切换到演示数据。</p></details></div></section></div>';
+    "</button></form></div></section></div>";
   if (localTestLogin) {
     $("#email").placeholder = "本地测试邮箱：" + localTestLogin.email;
     $("#password").placeholder = "本地测试密码：" + localTestLogin.password;
@@ -204,25 +201,16 @@ function login() {
     hint.textContent =
       "输入框中的提示为本机专用测试凭据，填写后即可登录；请勿公开分享。";
     $("#login").append(hint);
-  } else if (location.hostname.endsWith("github.io")) {
-    $("#password").placeholder = "由后端管理员提供，无公共测试密码";
+  } else if (publicTrialLogin) {
+    $("#email").value = publicTrialLogin.email;
+    $("#password").value = publicTrialLogin.password;
+    const hint = document.createElement("p");
+    hint.className = "muted";
+    hint.textContent = "访客账号已填写，可直接登录。试用数据与管理权限分开。";
+    $("#login").append(hint);
   }
   bindForm("#login", async (data) => {
-    const entered = $("#backend").value.trim().replace(/\/$/, "");
-    if (entered) {
-      const url = new URL(entered);
-      if (
-        url.protocol !== "https:" &&
-        !["localhost", "127.0.0.1"].includes(url.hostname)
-      )
-        throw new Error("远程后端必须使用 HTTPS");
-      if (url.username || url.password || url.search || url.hash)
-        throw new Error("服务地址不能包含账号、密码或查询参数");
-      base = entered;
-    } else if (location.hostname.endsWith("github.io"))
-      throw new Error("请先设置后端服务地址");
-    else base = location.origin;
-    localStorage.setItem(config.id + "-api", base);
+    if (!base) throw new Error("试用服务暂未开放，请稍后访问。");
     const result = await post("/auth/login", {
       email: data.get("email"),
       password: data.get("password"),
@@ -235,9 +223,17 @@ function login() {
 export async function start(options) {
   config = options;
   try {
-    const response = await fetch("./config.json");
+    const response = await fetch("./config.json", { cache: "no-store" });
     const runtime = await response.json();
-    base = runtime.api_base_url || "";
+    if (typeof runtime.api_base_url === "string" && runtime.api_base_url) {
+      const endpoint = new URL(runtime.api_base_url);
+      if (endpoint.protocol !== "https:" || endpoint.username || endpoint.password || endpoint.search || endpoint.hash)
+        throw new Error("Invalid deployment endpoint");
+      base = endpoint.href.replace(/\/$/, "");
+    }
+    if (typeof runtime.public_trial_login?.email === "string" &&
+        typeof runtime.public_trial_login?.password === "string")
+      publicTrialLogin = runtime.public_trial_login;
     if (
       ["127.0.0.1", "localhost", "[::1]"].includes(location.hostname) &&
       typeof runtime.local_test_login?.email === "string" &&
@@ -245,7 +241,7 @@ export async function start(options) {
     )
       localTestLogin = runtime.local_test_login;
   } catch {}
-  base = localStorage.getItem(config.id + "-api") || base;
+  if (!location.hostname.endsWith("github.io") && !base) base = location.origin;
   window.addEventListener("hashchange", () => {
     if (user) navigate();
   });
